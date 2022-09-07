@@ -106,7 +106,7 @@ public final class MicrohttpAdapter {
                 headers.put(header.name().toLowerCase(), header.value());
             }
             this.headers = Collections.unmodifiableMap(headers);
-            this.body = new ByteArrayInputStream(request.body());
+            this.body = new ByteArrayInputStream(request.body() == null ? new byte[]{} : request.body());
         }
 
         @Override
