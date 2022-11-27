@@ -61,11 +61,11 @@ public final class MicrohttpAdapter {
     private static final class MicrohttpHandler implements Handler {
 
         private final Options options;
-        private final Function<Request, dev.mccue.rosie.Response> handler;
+        private final Function<Request, dev.mccue.rosie.IntoResponse> handler;
         private final ExecutorService executorService;
 
         MicrohttpHandler(
-                Function<Request, dev.mccue.rosie.Response> handler,
+                Function<Request, dev.mccue.rosie.IntoResponse> handler,
                 Options options,
                 ExecutorService executorService
         ) {
@@ -100,7 +100,7 @@ public final class MicrohttpAdapter {
     }
 
     public static void runServer(
-            Function<Request, dev.mccue.rosie.Response> handler,
+            Function<Request, dev.mccue.rosie.IntoResponse> handler,
             Options options,
             ExecutorService executorService
     ) {
