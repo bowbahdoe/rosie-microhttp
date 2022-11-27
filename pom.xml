@@ -6,7 +6,7 @@
 
     <groupId>dev.mccue</groupId>
     <artifactId>rosie-microhttp</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.4</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -29,7 +29,7 @@
         <dependency>
             <groupId>org.microhttp</groupId>
             <artifactId>microhttp</artifactId>
-            <version>0.8</version>
+            <version>0.9</version>
         </dependency>
     </dependencies>
 

@@ -1,15 +1,17 @@
 package dev.mccue.rosie.microhttp;
 
+import dev.mccue.rosie.Body;
+import dev.mccue.rosie.IntoResponse;
 import dev.mccue.rosie.Request;
-import org.microhttp.Header;
-import org.microhttp.Response;
+import org.microhttp.*;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.security.cert.X509Certificate;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 public final class MicrohttpAdapter {
     private MicrohttpAdapter() {}
@@ -55,7 +57,63 @@ public final class MicrohttpAdapter {
             Map.entry(503, "Service Unavailable"),
             Map.entry(504, "Gateway Time-out"),
             Map.entry(505, "HTTP Version not supported")
-    ).getOrDefault(status, "Unknown");;
+    ).getOrDefault(status, "Unknown");
+    private static final class MicrohttpHandler implements Handler {
+
+        private final Options options;
+        private final Function<Request, dev.mccue.rosie.Response> handler;
+        private final ExecutorService executorService;
+
+        MicrohttpHandler(
+                Function<Request, dev.mccue.rosie.Response> handler,
+                Options options,
+                ExecutorService executorService
+        ) {
+            this.handler = handler;
+            this.options = options;
+            this.executorService = executorService;
+        }
+
+        @Override
+        public void handle(org.microhttp.Request request, Consumer<Response> consumer) {
+            var errorResponse = new Response(
+                    500,
+                    STATUS_TO_REASON.apply(500),
+                    List.of(),
+                    new byte[] {}
+            );
+
+            executorService.submit(() -> {
+                Response response = errorResponse;
+                try {
+                    var rosieRequest = MicrohttpAdapter.fromMicrohttpRequest(
+                            options.host(),
+                            options.port(),
+                            request
+                    );
+                    response = toMicrohttpResponse(handler.apply(rosieRequest).intoResponse());
+                } finally {
+                    consumer.accept(response);
+                }
+            });
+        }
+    }
+
+    public static void runServer(
+            Function<Request, dev.mccue.rosie.Response> handler,
+            Options options,
+            ExecutorService executorService
+    ) {
+        try {
+            var eventLoop = new EventLoop(options,new MicrohttpHandler(handler, options, executorService));
+            eventLoop.start();
+            eventLoop.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
 
     public static Response toMicrohttpResponse(dev.mccue.rosie.Response response) {
         var baos = new ByteArrayOutputStream();
