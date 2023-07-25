@@ -1,7 +1,5 @@
 package dev.mccue.rosie.microhttp;
 
-import dev.mccue.rosie.Body;
-import dev.mccue.rosie.IntoResponse;
 import dev.mccue.rosie.Request;
 import org.microhttp.*;
 
@@ -11,7 +9,6 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.regex.Pattern;
 
 public final class MicrohttpAdapter {
     private MicrohttpAdapter() {}
@@ -61,11 +58,11 @@ public final class MicrohttpAdapter {
     private static final class MicrohttpHandler implements Handler {
 
         private final Options options;
-        private final Function<Request, dev.mccue.rosie.IntoResponse> handler;
+        private final Function<Request, ? extends dev.mccue.rosie.IntoResponse> handler;
         private final ExecutorService executorService;
 
         MicrohttpHandler(
-                Function<Request, dev.mccue.rosie.IntoResponse> handler,
+                Function<Request, ? extends dev.mccue.rosie.IntoResponse> handler,
                 Options options,
                 ExecutorService executorService
         ) {
@@ -100,7 +97,7 @@ public final class MicrohttpAdapter {
     }
 
     public static void runServer(
-            Function<Request, dev.mccue.rosie.IntoResponse> handler,
+            Function<Request, ? extends dev.mccue.rosie.IntoResponse> handler,
             Options options,
             ExecutorService executorService
     ) {
