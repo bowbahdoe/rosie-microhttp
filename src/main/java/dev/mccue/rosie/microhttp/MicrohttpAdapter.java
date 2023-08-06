@@ -1,5 +1,6 @@
 package dev.mccue.rosie.microhttp;
 
+import dev.mccue.microhttp.systemlogger.SystemLogger;
 import dev.mccue.rosie.Request;
 import org.microhttp.*;
 
@@ -101,8 +102,17 @@ public final class MicrohttpAdapter {
             Options options,
             ExecutorService executorService
     ) {
+        runServer(handler, options, new SystemLogger(), executorService);
+    }
+
+    public static void runServer(
+            Function<Request, ? extends dev.mccue.rosie.IntoResponse> handler,
+            Options options,
+            Logger logger,
+            ExecutorService executorService
+    ) {
         try {
-            var eventLoop = new EventLoop(options,new MicrohttpHandler(handler, options, executorService));
+            var eventLoop = new EventLoop(options, logger, new MicrohttpHandler(handler, options, executorService));
             eventLoop.start();
             eventLoop.join();
         } catch (InterruptedException e) {

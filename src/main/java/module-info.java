@@ -7,5 +7,7 @@ module dev.mccue.rosie.microhttp {
     requires transitive dev.mccue.rosie;
     requires transitive org.microhttp;
 
+    requires dev.mccue.microhttp.systemlogger;
+
     exports dev.mccue.rosie.microhttp;
 }
