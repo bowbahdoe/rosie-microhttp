@@ -12,6 +12,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public final class MicrohttpAdapter {
+    private static final System.Logger LOGGER
+            = System.getLogger(MicrohttpAdapter.class.getName());
+
     private MicrohttpAdapter() {}
 
     private static final Function<Integer, String> STATUS_TO_REASON = (status) -> Map.ofEntries(
@@ -59,11 +62,11 @@ public final class MicrohttpAdapter {
     private static final class MicrohttpHandler implements Handler {
 
         private final Options options;
-        private final Function<Request, ? extends dev.mccue.rosie.IntoResponse> handler;
+        private final dev.mccue.rosie.Handler<Request> handler;
         private final ExecutorService executorService;
 
         MicrohttpHandler(
-                Function<Request, ? extends dev.mccue.rosie.IntoResponse> handler,
+                dev.mccue.rosie.Handler<Request> handler,
                 Options options,
                 ExecutorService executorService
         ) {
@@ -89,7 +92,13 @@ public final class MicrohttpAdapter {
                             options.port(),
                             request
                     );
-                    response = toMicrohttpResponse(handler.apply(rosieRequest).intoResponse());
+                    response = toMicrohttpResponse(handler.handle(rosieRequest).intoResponse());
+                } catch (Exception e) {
+                    LOGGER.log(
+                            System.Logger.Level.ERROR,
+                            "Unhandled exception while handling request.",
+                            e
+                    );
                 } finally {
                     consumer.accept(response);
                 }
@@ -98,7 +107,7 @@ public final class MicrohttpAdapter {
     }
 
     public static void runServer(
-            Function<Request, ? extends dev.mccue.rosie.IntoResponse> handler,
+            dev.mccue.rosie.Handler<Request> handler,
             Options options,
             ExecutorService executorService
     ) {
@@ -106,7 +115,7 @@ public final class MicrohttpAdapter {
     }
 
     public static void runServer(
-            Function<Request, ? extends dev.mccue.rosie.IntoResponse> handler,
+            dev.mccue.rosie.Handler<Request> handler,
             Options options,
             Logger logger,
             ExecutorService executorService
